@@ -16,7 +16,7 @@ RUN apt-get update && \
     apt-get install -yqq libc6-dev-i386 
 
 RUN cd / && rm -rf /clam && \
-    git clone https://github.com/seahorn/crab-llvm clam --depth=10 ; \
+    git clone https://github.com/quasar-1/crab-llvm clam --depth=10 ; \
     mkdir -p /clam/build
 WORKDIR /clam/build
 
@@ -30,12 +30,12 @@ RUN cmake -GNinja \
           -DCMAKE_CXX_COMPILER=g++-5 \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
           -DCRAB_USE_LDD=ON \
-          -DCRAB_USE_APRON=ON \
+          -DCRAB_USE_ELINA=ON \
           ../ && \
     cmake --build . --target extra  && cmake .. && \
     cmake --build . --target crab  && cmake .. && \
     cmake --build . --target ldd  && cmake .. && \
-    cmake --build . --target apron  && cmake .. && \
+    cmake --build . --target elina  && cmake .. && \
     cmake --build . --target install
 
 # symlink clang (from base image)

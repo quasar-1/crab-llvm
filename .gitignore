@@ -1,3 +1,7 @@
 /build/
 /debug/
 /ext/
+crab/
+llvm-dsa/
+llvm-seahorn/
+sea-dsa/
