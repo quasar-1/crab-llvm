@@ -37,6 +37,15 @@ namespace llvm {
   DUMP_TO_LLVM_STREAM(clam::boxes_domain_t)
   DUMP_TO_LLVM_STREAM(clam::dis_interval_domain_t)
   DUMP_TO_LLVM_STREAM(clam::num_domain_t)
+  DUMP_TO_LLVM_STREAM(clam::boolean_domain_t)
+  DUMP_TO_LLVM_STREAM(clam::arraySmashing_interval_domain_t)
+  DUMP_TO_LLVM_STREAM(clam::arraySmashing_wrapped_interval_domain_t)
+  DUMP_TO_LLVM_STREAM(clam::arraySmashing_ric_domain_t)
+  DUMP_TO_LLVM_STREAM(clam::arraySmashing_split_dbm_domain_t)
+  DUMP_TO_LLVM_STREAM(clam::arraySmashing_boxes_domain_t)
+  DUMP_TO_LLVM_STREAM(clam::arraySmashing_dis_interval_domain_t)
+  DUMP_TO_LLVM_STREAM(clam::arraySmashing_num_domain_t)
+  DUMP_TO_LLVM_STREAM(clam::original_split_dbm_domain_t)
 
   template <typename DomInfo>
   inline llvm::raw_ostream& operator<<(llvm::raw_ostream& o, 
@@ -153,13 +162,16 @@ namespace clam {
 
     typedef std::shared_ptr<GenericAbsDomWrapper> GenericAbsDomWrapperPtr;
     
-    typedef enum { intv, split_dbm, 
+    typedef enum { intv, split_dbm, flat_bool,
 		   term_intv, term_dis_intv, 
 		   ric, 
 		   boxes, dis_intv,
 		   oct, pk,
 		   num,
-		   w_intv} id_t;
+		   w_intv,
+       as_intv, as_split_dbm, as_term_intv, as_term_dis_intv,
+       as_ric, as_boxes, as_dis_intv, as_oct, as_pk, as_num,
+       as_w_intv, orig_zones} id_t;
     
     GenericAbsDomWrapper() { }
     
@@ -207,6 +219,7 @@ namespace clam {
    inline void getAbsDomWrappee (GenericAbsDomWrapperPtr wrapper, T& wrappee);
 
    DEFINE_WRAPPER(IntervalDomainWrapper,interval_domain_t,intv)
+   DEFINE_WRAPPER(FlatBooleanDomainWrapper,boolean_domain_t,flat_bool)
    DEFINE_WRAPPER(WrappedIntervalDomainWrapper,wrapped_interval_domain_t,w_intv)
    DEFINE_WRAPPER(RicDomainWrapper,ric_domain_t,ric)
    DEFINE_WRAPPER(SDbmDomainWrapper,split_dbm_domain_t,split_dbm)
@@ -217,5 +230,17 @@ namespace clam {
    DEFINE_WRAPPER(OctApronDomainWrapper,oct_domain_t,oct)
    DEFINE_WRAPPER(PkApronDomainWrapper,pk_domain_t,pk)
    DEFINE_WRAPPER(NumDomainWrapper,num_domain_t,num)
-
+   DEFINE_WRAPPER(ArraySmashingIntervalDomainWrapper,arraySmashing_interval_domain_t,as_intv)
+   DEFINE_WRAPPER(ArraySmashingWrappedIntervalDomainWrapper,arraySmashing_wrapped_interval_domain_t,as_w_intv)
+   DEFINE_WRAPPER(ArraySmashingRicDomainWrapper,arraySmashing_ric_domain_t,as_ric)
+   DEFINE_WRAPPER(ArraySmashingSDbmDomainWrapper,arraySmashing_split_dbm_domain_t,as_split_dbm)
+   DEFINE_WRAPPER(ArraySmashingTermIntDomainWrapper,arraySmashing_term_int_domain_t,as_term_intv)
+   DEFINE_WRAPPER(ArraySmashingTermDisIntDomainWrapper,arraySmashing_term_dis_int_domain_t,as_term_dis_intv)
+   DEFINE_WRAPPER(ArraySmashingBoxesDomainWrapper,arraySmashing_boxes_domain_t,as_boxes)
+   DEFINE_WRAPPER(ArraySmashingDisIntervalDomainWrapper,arraySmashing_dis_interval_domain_t,as_dis_intv)
+   DEFINE_WRAPPER(ArraySmashingOctApronDomainWrapper,arraySmashing_oct_domain_t,as_oct)
+   DEFINE_WRAPPER(ArraySmashingPkApronDomainWrapper,arraySmashing_pk_domain_t,as_pk)
+   DEFINE_WRAPPER(ArraySmashingNumDomainWrapper,arraySmashing_num_domain_t,as_num)
+   DEFINE_WRAPPER(OriginalSDbmDomainWrapper,original_split_dbm_domain_t,orig_zones)
+   
 } // end namespace clam

@@ -238,6 +238,110 @@ def parseArgs(argv):
                     action='store_true')
     p.add_argument('file', metavar='FILE', help='Input file')
     ### BEGIN CRAB
+    ######################################################
+    ############################
+    #### FLAGS FOR AUTO-AI BEGIN
+    ###########################
+    ###########################
+    ###########################
+    ###########################
+    p.add_argument ('--autoAI',
+                    help='Automated Abstract Interpretation: Automatically tune domains.',
+                    dest='autoAI', default=False, action='store_true')
+    p.add_argument('--dom1',
+                    help="Choose abstract domain:\n"
+                          "- int: intervals\n"
+                          "- ric: reduced product of intervals and congruences\n"
+                          "- term-int: int with uninterpreted functions\n"
+                          "- dis-int: disjunctive intervals based on Clousot's DisInt domain\n"
+                          "- term-dis-int: dis-int with uninterpreted functions\n"
+                          "- boxes: disjunctive intervals based on LDDs\n"
+                          "- zones: zones domain using sparse DBM in Split Normal Form\n"
+                          "- oct: octagons domain\n"
+                          "- pk: polyhedra domain\n"
+                          "- rtz: reduced product of term-dis-int with zones\n"
+                          "- w-int: wrapped intervals\n"
+                          "- bool: flat boolean domain\n",
+                    choices=['int', 'ric', 'term-int',
+                             'dis-int', 'term-dis-int', 'boxes',  
+                             'zones', 'oct', 'pk', 'rtz',
+                             'w-int', 'as-int', 'as-ric', 'as-term-int', 
+                             'as-dis-int', 'as-term-dis-int', 'as-boxes', 
+                             'as-zones', 'as-oct', 'as-pk', 'as-rtz',
+                             'as-w-int','bool', 'orig-zones'],
+                    dest='dom1', default='zones')
+    p.add_argument('--dom2',
+                    help="Choose abstract domain:\n"
+                          "- int: intervals\n"
+                          "- ric: reduced product of intervals and congruences\n"
+                          "- term-int: int with uninterpreted functions\n"
+                          "- dis-int: disjunctive intervals based on Clousot's DisInt domain\n"
+                          "- term-dis-int: dis-int with uninterpreted functions\n"
+                          "- boxes: disjunctive intervals based on LDDs\n"
+                          "- zones: zones domain using sparse DBM in Split Normal Form\n"
+                          "- oct: octagons domain\n"
+                          "- pk: polyhedra domain\n"
+                          "- rtz: reduced product of term-dis-int with zones\n"
+                          "- w-int: wrapped intervals\n"
+                          "- bool: flat boolean domain\n",
+                    choices=['int', 'ric', 'term-int',
+                             'dis-int', 'term-dis-int', 'boxes',  
+                             'zones', 'oct', 'pk', 'rtz',
+                             'w-int', 'as-int', 'as-ric', 'as-term-int', 
+                             'as-dis-int', 'as-term-dis-int', 'as-boxes', 
+                             'as-zones', 'as-oct', 'as-pk', 'as-rtz',
+                             'as-w-int','bool', 'orig-zones'],
+                    dest='dom2', default='zones')
+    p.add_argument('--dom3',
+                    help="Choose abstract domain:\n"
+                          "- int: intervals\n"
+                          "- ric: reduced product of intervals and congruences\n"
+                          "- term-int: int with uninterpreted functions\n"
+                          "- dis-int: disjunctive intervals based on Clousot's DisInt domain\n"
+                          "- term-dis-int: dis-int with uninterpreted functions\n"
+                          "- boxes: disjunctive intervals based on LDDs\n"
+                          "- zones: zones domain using sparse DBM in Split Normal Form\n"
+                          "- oct: octagons domain\n"
+                          "- pk: polyhedra domain\n"
+                          "- rtz: reduced product of term-dis-int with zones\n"
+                          "- w-int: wrapped intervals\n"
+                          "- bool: flat boolean domain\n",
+                    choices=['int', 'ric', 'term-int',
+                             'dis-int', 'term-dis-int', 'boxes',  
+                             'zones', 'oct', 'pk', 'rtz',
+                             'w-int', 'as-int', 'as-ric', 'as-term-int', 
+                             'as-dis-int', 'as-term-dis-int', 'as-boxes', 
+                             'as-zones', 'as-oct', 'as-pk', 'as-rtz',
+                             'as-w-int','bool', 'orig-zones'],
+                    dest='dom3', default='zones')
+
+    p.add_argument('--domains',
+                    help='Number of domains in a configuration',
+                    dest='domains', default = "0")
+
+    p.add_argument('--back1', dest='back1', help='Domain 1 with backward',
+                    default=False, action='store_true')
+    p.add_argument('--back2', dest='back2', help='Domain 2 with backward',
+                    default=False, action='store_true')
+    p.add_argument('--back3', dest='back3', help='Domain 3 with backward',
+                    default=False, action='store_true')
+    p.add_argument('--resultPath', dest='resultPath', help="Temporary file to spit out the results in",
+                    default="")
+    p.add_argument('--expert', dest='expert', help='Expert experiment',
+                    default=False, action='store_true')                
+    
+    p.add_argument('--mostPrecise', dest='mostPrecise', help='Run the most precise recipe', 
+                    default=False, action='store_true')
+    
+    ###########################
+    ###########################
+    ###########################
+    ###########################
+    ###########################
+    ###########################
+    ###########################
+    ###########################
+    ###########################
     p.add_argument('--crab-verbose', type=int,
                     help='Enable verbose messages',
                     dest='crab_verbose',
@@ -264,7 +368,10 @@ def parseArgs(argv):
                     choices=['int', 'ric', 'term-int',
                              'dis-int', 'term-dis-int', 'boxes',  
                              'zones', 'oct', 'pk', 'rtz',
-                             'w-int'],
+                             'w-int', 'as-int', 'as-ric', 'as-term-int', 
+                             'as-dis-int', 'as-term-dis-int', 'as-boxes', 
+                             'as-zones', 'as-oct', 'as-pk', 'as-rtz',
+                             'as-w-int','bool', 'orig-zones'],
                     dest='crab_dom', default='zones')
     p.add_argument('--crab-widening-delay', 
                     type=int, dest='widening_delay', 
@@ -703,6 +810,40 @@ def clam(in_name, out_name, args, extra_opts, cpu = -1, mem = -1):
         clam_args.append('--crab-lower-constant-expr=false')
     if args.disable_lower_switch:
         clam_args.append('--crab-lower-switch=false')
+
+    ################################################
+    ##   Progressive abstract interpretaion flags ##
+    ################################################
+    if args.autoAI:
+        print("*** autoAIpy:    Automatically tuning abstract interpretation parameters ***")
+        clam_args.append('--autoAI=1')
+        clam_args.append('--domains={0}'.format(args.domains))
+        clam_args.append('--dom1={0}'.format(args.dom1))
+        clam_args.append('--dom2={0}'.format(args.dom2))
+        clam_args.append('--dom3={0}'.format(args.dom3))
+        # Backward flags per intermediate domain
+        if args.back1:
+            clam_args.append('--back1=true')
+        else:
+            clam_args.append('--back1=false')
+        if args.back2:
+            clam_args.append('--back2=true')
+        else:
+            clam_args.append('--back2=false')
+        if args.back3:
+            clam_args.append('--back3=true')
+        else:
+            clam_args.append('--back3=false')
+
+        if args.expert:
+            clam_args.append('--expert=true')
+        if args.mostPrecise:
+            clam_args.append('--mostPrecise=true')
+        # Temporary result path
+        clam_args.append('--resultPath={0}'.format(args.resultPath))
+    ####################################################
+    ##   Progressive abstract interpretaion flags end ##
+    ####################################################
     
     clam_args.append('--crab-dom={0}'.format(args.crab_dom))
     clam_args.append('--crab-widening-delay={0}'.format(args.widening_delay))

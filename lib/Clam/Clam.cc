@@ -47,6 +47,7 @@
 #include "crab/analysis/dataflow/liveness.hpp"
 #include "crab/analysis/dataflow/assumptions.hpp"
 #include "crab/checkers/assertion.hpp"
+#include "crab/transforms/lower_safe_assertions.hpp"
 //#include "crab/checkers/null.hpp"
 #include "crab/checkers/checker.hpp"
 #include "crab/cg/cg.hpp"
@@ -373,6 +374,8 @@ namespace clam {
   static std::string dom_to_str(CrabDomain dom) {
     switch (dom) {
     case INTERVALS:             return interval_domain_t::getDomainName();
+    case TERMS_INTERVALS:       return term_int_domain_t::getDomainName();
+    case BOOLEAN:               return boolean_domain_t::getDomainName();
     case INTERVALS_CONGRUENCES: return ric_domain_t::getDomainName();
     case BOXES:                 return boxes_domain_t::getDomainName();
     case DIS_INTERVALS:         return dis_interval_domain_t::getDomainName();
@@ -382,6 +385,18 @@ namespace clam {
     case OCT:                   return oct_domain_t::getDomainName();
     case PK:                    return pk_domain_t::getDomainName();
     case WRAPPED_INTERVALS:     return wrapped_interval_domain_t::getDomainName();
+    case ARRAYSMASHING_INTERVALS:             return arraySmashing_interval_domain_t::getDomainName(); 
+    case ARRAYSMASHING_INTERVALS_CONGRUENCES: return arraySmashing_ric_domain_t::getDomainName();
+    case ARRAYSMASHING_BOXES:                 return arraySmashing_boxes_domain_t::getDomainName();
+    case ARRAYSMASHING_DIS_INTERVALS:         return arraySmashing_dis_interval_domain_t::getDomainName();
+    case ARRAYSMASHING_ZONES_SPLIT_DBM:       return arraySmashing_split_dbm_domain_t::getDomainName();
+    case ARRAYSMASHING_TERMS_DIS_INTERVALS:   return arraySmashing_term_dis_int_domain_t::getDomainName();
+    case ARRAYSMASHING_TERMS_ZONES:           return arraySmashing_num_domain_t::getDomainName();
+    case ARRAYSMASHING_OCT:                   return arraySmashing_oct_domain_t::getDomainName();
+    case ARRAYSMASHING_PK:                    return arraySmashing_pk_domain_t::getDomainName();
+    case ARRAYSMASHING_WRAPPED_INTERVALS:     return arraySmashing_wrapped_interval_domain_t::getDomainName();
+    case ARRAYSMASHING_TERMS_INTERVALS:       return arraySmashing_term_int_domain_t::getDomainName();
+    case ORIGINAL_ZONES_SPLIT_DBM:            return original_split_dbm_domain_t::getDomainName();
     default:                    return "none";
     }
   }
@@ -661,6 +676,15 @@ namespace clam {
 	//   prop.reset(new null_prop_t(params.check_verbose));
 	intra_checker_t checker(analyzer, {prop});
 	checker.run();
+
+  // CFG TRANSFORMATION: Convert safe asserts into assumes
+  std::set<const cfg_t::statement_t*> safe_checks;
+  safe_checks.insert(prop->get_safe_checks().begin(),
+                     prop->get_safe_checks().end());
+  crab::transforms::lower_safe_assertions<cfg_t> lsa(safe_checks);
+  lsa.run(get_cfg());
+  // Transformation done
+
 	CRAB_VERBOSE_IF(1,
 			llvm::outs() << "Function " << m_fun.getName() << "\n";
 			checker.show(crab::outs()));
@@ -720,22 +744,33 @@ namespace clam {
     // Domains used for intra-procedural analysis
     const std::map<CrabDomain, intra_analysis> intra_analyses {
       {
-	ZONES_SPLIT_DBM         , { bind_this(this, &IntraClam_Impl::analyzeCfg<split_dbm_domain_t>), "zones" }}	
+    	ZONES_SPLIT_DBM         , { bind_this(this, &IntraClam_Impl::analyzeCfg<split_dbm_domain_t>), "zones" }}	
+      , { ARRAYSMASHING_ZONES_SPLIT_DBM       , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_split_dbm_domain_t>), "array smashing zones" }}
       #ifdef HAVE_ALL_DOMAINS	
       , { INTERVALS_CONGRUENCES , { bind_this(this, &IntraClam_Impl::analyzeCfg<ric_domain_t>), "reduced product of intervals and congruences" }}
+      , { ARRAYSMASHING_INTERVALS_CONGRUENCES , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_ric_domain_t>), "array smashingreduced product of intervals and congruences" }}
+      , { BOOLEAN               , { bind_this(this, &IntraClam_Impl::analyzeCfg<boolean_domain_t>), "boolean" } }
       , { DIS_INTERVALS         , { bind_this(this, &IntraClam_Impl::analyzeCfg<dis_interval_domain_t>), "disjunctive intervals" }}
+      , { ARRAYSMASHING_DIS_INTERVALS         , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_dis_interval_domain_t>), "array smashing disjunctive intervals" }}
       , { TERMS_INTERVALS       , { bind_this(this, &IntraClam_Impl::analyzeCfg<term_int_domain_t>), "terms with intervals" }}
+      , { ARRAYSMASHING_TERMS_INTERVALS       , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_term_int_domain_t>), "array smashing terms with intervals" }}
       , { WRAPPED_INTERVALS     , { bind_this(this, &IntraClam_Impl::analyzeCfg<wrapped_interval_domain_t>), "wrapped intervals" }}
+      , { ARRAYSMASHING_WRAPPED_INTERVALS     , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_wrapped_interval_domain_t>), "array smashing wrapped intervals" }}
       , { TERMS_ZONES           , { bind_this(this, &IntraClam_Impl::analyzeCfg<num_domain_t>), "terms with zones" }}
+      , { ARRAYSMASHING_TERMS_ZONES         , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_num_domain_t>), "array smashing terms with zones" }}
       , { TERMS_DIS_INTERVALS   , { bind_this(this, &IntraClam_Impl::analyzeCfg<term_dis_int_domain_t>), "terms with disjunctive intervals" }}
+      , { ARRAYSMASHING_TERMS_DIS_INTERVALS   , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_term_dis_int_domain_t>), "array smashing terms with disjunctive intervals" }}
       , { OCT                   , { bind_this(this, &IntraClam_Impl::analyzeCfg<oct_domain_t>), "octagons" }}
+      , { ARRAYSMASHING_OCT     , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_oct_domain_t>), "array smashing octagons" }}
       , { BOXES                 , { bind_this(this, &IntraClam_Impl::analyzeCfg<boxes_domain_t>), "boxes" }}
+      , { ARRAYSMASHING_BOXES   , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_boxes_domain_t>), "array smashing boxes" }}
       , { PK                    , { bind_this(this, &IntraClam_Impl::analyzeCfg<pk_domain_t>), "polyhedra" }}
-      , { INTERVALS             , { bind_this(this, &IntraClam_Impl::analyzeCfg<interval_domain_t>), "classical intervals" }} 	
-      #endif 	
-      
+      , { ARRAYSMASHING_PK      , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_pk_domain_t>), "array smashing polyhedra" }}
+      , { INTERVALS             , { bind_this(this, &IntraClam_Impl::analyzeCfg<interval_domain_t>), "classical intervals" }}
+      , { ARRAYSMASHING_INTERVALS , { bind_this(this, &IntraClam_Impl::analyzeCfg<arraySmashing_interval_domain_t>), "array smashing classical intervals" }}
+      , { ORIGINAL_ZONES_SPLIT_DBM , { bind_this(this, &IntraClam_Impl::analyzeCfg<original_split_dbm_domain_t>), "orignal zones domainw"}} 	
+      #endif 	 
     };
-
 
     // Domains used for path-based analysis
     const std::map<CrabDomain, path_analysis> path_analyses {
@@ -1269,6 +1304,130 @@ namespace clam {
   /**
    * Begin ClamPass methods
    **/
+
+
+    /**
+    * Begin autoAI Methods
+    **/
+
+    void ClamPass::autoAI_IntraProcAnalysis(Module &M){
+            errs() << "\n###### optAI: Entered the intra procedural analyis core engine";
+            errs() << "\n###### optAI: version 01.01.20";
+            errs() << "\n###### optAI: Creating the results file with initial values";
+
+            // Creating the results file with initial values for warnings and time
+            FILE *fp;
+            fp=fopen(resultPath.c_str(), "w");
+            fprintf(fp, "Warnings:TIMEOUT\nRunningTime:TIMEOUT");
+            fclose(fp);
+
+            // Initializations
+            std::vector<std::tuple<CrabDomain, bool>> configuration;
+            CrabDomain domain1 = dom1;
+            CrabDomain domain2 = dom2;
+            CrabDomain domain3 = dom3;
+            bool backward1 = back1;
+            bool backward2 = back2;
+            bool backward3 = back3;
+            switch (domains)
+            {
+              case 1:
+                configuration.push_back(std::make_tuple(domain1, backward1));
+                break;
+
+              case 2:
+                configuration.push_back(std::make_tuple(domain1, backward1));
+                configuration.push_back(std::make_tuple(domain2, backward2));
+                break;
+              
+              case 3:
+                configuration.push_back(std::make_tuple(domain1, backward1));
+                configuration.push_back(std::make_tuple(domain2, backward2));
+                configuration.push_back(std::make_tuple(domain3, backward3));
+                break;
+
+              default:
+                errs() << "\n###### optAI: Number of given domains is not allowed in the current setting.";
+                break;
+            }
+
+
+            // Get the number of safe checks
+            unsigned total_safe = 0;
+
+            errs() << "\n###### optAI: Total SAFE checks after running the configuration = " << total_safe;
+
+
+            errs() << "\n###### optAI: Running the given configuration:";
+            clock_t begin = clock();
+            for(unsigned i=0; i < configuration.size(); i++){
+                errs() << "\n\tDomain:" << dom_to_str(std::get<0>(configuration[i])) << "   Backward:" << std::get<1>(configuration[i]);
+
+                /**
+                 *  Setting crab parameters according to the given configuration 
+                 */
+
+                  m_params.dom = std::get<0>(configuration[i]);           // Intermediate-domain
+                  m_params.run_backward = std::get<1>(configuration[i]);  // Intermediate-backward flag
+                  // widening delay   // These are global and not changed, but they can be
+                  // narrowing iterations   // These are global and not changed, but they can be
+                  // widening threshold   // These are global and not changed, but they can be
+
+                // Running the domain on all the functions
+                unsigned num_analyzed_funcs = 0;
+                for (auto &F : M) {
+                    if (!isTrackable(F)) continue;
+                        num_analyzed_funcs++;
+                }
+              
+                m_checks_db.clear(); // Clear all previous results
+
+                unsigned fun_counter = 1;
+                for (auto &F : M) {
+                    if (!CrabInter && isTrackable(F)) {
+                        ++fun_counter;
+                        runOnFunction(F); 
+                    } 
+                }
+
+                // Get the number of safe checks
+                total_safe = total_safe + get_total_safe_checks();
+                errs() << "\n###### optAI: total safe till now: " << total_safe ;
+            }
+            clock_t end = clock();
+            // Finished running the configuration on all the functions in the Module
+
+
+            // Get the number of warnings
+            unsigned total_warnings = get_total_warning_checks();
+            errs() << "\n###### optAI: Total WARNING checks after running the configuration = " << total_warnings;
+
+            // Get total unsafe checks
+            unsigned total_unsafe = get_total_error_checks();
+            errs() << "\n###### optAI: Total unsafe checks after running the configuraiton = " << total_unsafe;
+
+            // Total number of checks/assertions in the program
+            unsigned total_checks = get_total_checks();
+            errs() << "\n###### optAI: Total number of checks (safe + warnings + unsafe)= " << total_safe + total_unsafe + total_warnings;
+          
+            // Get the time it took to run all the domains
+            float totalRunningTime = (1000 * float(end - begin)) / CLOCKS_PER_SEC; // milli seconds 
+            errs() << "\n###### optAI: Total Running time = " << totalRunningTime << " milli seconds";
+
+            // Save the results in a text file, that was pre-created by the python wrapper
+            errs() << "\n###### optAI: Temporary results path = " << resultPath ;
+            FILE *fp2;
+            fp2=fopen(resultPath.c_str(), "w");
+            fprintf(fp2, "Warnings:%d\nRunningTime:%f\nTotalAssertions:%d", total_warnings, totalRunningTime, total_safe + total_warnings + total_unsafe);
+            fclose(fp2);
+            errs() << "\n###### optAI: bye bye\n";
+          }
+
+          /**
+          * autoAI methods end
+          **/
+
+
   ClamPass::ClamPass():
     llvm::ModulePass(ID), m_cfg_builder_man(nullptr) {}
   
@@ -1378,21 +1537,29 @@ namespace clam {
                            << num_analyzed_funcs << "\n";);
 
 
+    if(autoAI){
+      errs() << "\n ************* autoAI analysis enabled ************* \n";
+      autoAI_IntraProcAnalysis(M);
+    } else {
+      errs() << "\n ************* autoAI analysis NOT enabled ********** \n";
+    }
+
+
     if (CrabInter){
       InterClam_Impl inter_crab(M, *m_cfg_builder_man);
       AnalysisResults results = { m_pre_map, m_post_map, m_infeasible_edges, m_checks_db};
       inter_crab.Analyze(m_params, assumption_map_t(), results);
-    } else {
-      unsigned fun_counter = 1;
-      for (auto &F : M) {
-	if (!CrabInter && isTrackable(F)) {
-	  CRAB_VERBOSE_IF(1,
-			  crab::get_msg_stream() << "###Function "
-			  << fun_counter << "/" << num_analyzed_funcs << "###\n";);
-	  ++fun_counter;
-	  runOnFunction(F); 
-	}
-      }
+    } 
+    
+    if (!CrabInter && !autoAI){
+          unsigned fun_counter = 1;
+          for (auto &F : M) {
+            if (!CrabInter && isTrackable(F)) {
+                CRAB_VERBOSE_IF(1, crab::get_msg_stream() << "###Function " << fun_counter << "/" << num_analyzed_funcs << "###\n";);
+                ++fun_counter;
+                runOnFunction(F); 
+            }
+          }
     }
 
     if (CrabStats) {

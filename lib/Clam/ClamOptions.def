@@ -132,6 +132,8 @@ ClamDomain("crab-dom",
       cl::values 
       (clEnumValN(INTERVALS, "int",
 		   "Classical interval domain (default)"),
+       clEnumValN(BOOLEAN, "bool",
+       "Boolean abstract domain"),
        clEnumValN(TERMS_INTERVALS, "term-int",
 		   "Intervals with uninterpreted functions."),       
        clEnumValN(INTERVALS_CONGRUENCES, "ric",
@@ -144,12 +146,34 @@ ClamDomain("crab-dom",
 		   "Disjunctive intervals based on ldds"),
        clEnumValN(ZONES_SPLIT_DBM, "zones",
 		   "Zones domain with Sparse DBMs in Split Normal Form"),
+        clEnumValN(ORIGINAL_ZONES_SPLIT_DBM, "orig-zones",
+		   "Original zones domain"),
        clEnumValN(OCT, "oct", "Octagons domain"),
        clEnumValN(PK, "pk", "Polyhedra domain"),
        clEnumValN(TERMS_ZONES, "rtz",
 		   "Reduced product of term-dis-int and zones."),
        clEnumValN(WRAPPED_INTERVALS, "w-int",
-		  "Wrapped interval domain")),
+		  "Wrapped interval domain"),
+       clEnumValN(ARRAYSMASHING_INTERVALS, "as-int",
+		   "Array Smashing Classical interval domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_INTERVALS, "as-term-int",
+		   "Array Smashing Intervals with uninterpreted functions."),       
+       clEnumValN(ARRAYSMASHING_INTERVALS_CONGRUENCES, "as-ric",
+		   "Array Smashing Reduced product of intervals with congruences"),
+       clEnumValN(ARRAYSMASHING_DIS_INTERVALS, "as-dis-int",
+		   "Array Smashing Disjunctive intervals based on Clousot's DisInt domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_DIS_INTERVALS, "as-term-dis-int",
+		   "Array Smashing Disjunctive Intervals with uninterpreted functions."),
+       clEnumValN(ARRAYSMASHING_BOXES, "as-boxes",
+		   "Array Smashing Disjunctive intervals based on ldds"),
+       clEnumValN(ARRAYSMASHING_ZONES_SPLIT_DBM, "as-zones",
+		   "Array Smashing Zones domain with Sparse DBMs in Split Normal Form"),
+       clEnumValN(ARRAYSMASHING_OCT, "as-oct", "Octagons domain"),
+       clEnumValN(ARRAYSMASHING_PK, "as-pk", "Polyhedra domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_ZONES, "as-rtz",
+		   "Array Smashing Reduced product of term-dis-int and zones."),
+       clEnumValN(ARRAYSMASHING_WRAPPED_INTERVALS, "as-w-int",
+		  "Array Smashing Wrapped interval domain")),
 #ifdef HAVE_ALL_DOMAINS
        cl::init(INTERVALS));
 #else
@@ -314,3 +338,215 @@ CrabSanityChecks("crab-sanity-checks",
 	    llvm::cl::desc("Enable sanity checks"),
 	    llvm::cl::location(sanity),
 	    llvm::cl::value_desc("bool"));
+
+// autoAI external parameters
+
+cl::opt<unsigned int>
+autoAI("autoAI",
+        cl::desc("Automated Abstract Interpretation parameter tuning"),
+        cl::init(0));
+
+
+cl::opt<CrabDomain>
+dom1("dom1",
+      cl::desc("Crab numerical abstract domain used to infer invariants"),
+      cl::values 
+      (clEnumValN(INTERVALS, "int",
+		   "Classical interval domain (default)"),
+       clEnumValN(BOOLEAN, "bool",
+       "Boolean abstract domain"),
+       clEnumValN(TERMS_INTERVALS, "term-int",
+		   "Intervals with uninterpreted functions."),       
+       clEnumValN(INTERVALS_CONGRUENCES, "ric",
+		   "Reduced product of intervals with congruences"),
+       clEnumValN(DIS_INTERVALS, "dis-int",
+		   "Disjunctive intervals based on Clousot's DisInt domain"),
+       clEnumValN(TERMS_DIS_INTERVALS, "term-dis-int",
+		   "Disjunctive Intervals with uninterpreted functions."),
+       clEnumValN(BOXES, "boxes",
+		   "Disjunctive intervals based on ldds"),
+       clEnumValN(ZONES_SPLIT_DBM, "zones",
+		   "Zones domain with Sparse DBMs in Split Normal Form"),
+           clEnumValN(ORIGINAL_ZONES_SPLIT_DBM, "orig-zones",
+		   "Original zones domain"),
+       clEnumValN(OCT, "oct", "Octagons domain"),
+       clEnumValN(PK, "pk", "Polyhedra domain"),
+       clEnumValN(TERMS_ZONES, "rtz",
+		   "Reduced product of term-dis-int and zones."),
+       clEnumValN(WRAPPED_INTERVALS, "w-int",
+		  "Wrapped interval domain"),
+       clEnumValN(ARRAYSMASHING_INTERVALS, "as-int",
+		   "Array Smashing Classical interval domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_INTERVALS, "as-term-int",
+		   "Array Smashing Intervals with uninterpreted functions."),       
+       clEnumValN(ARRAYSMASHING_INTERVALS_CONGRUENCES, "as-ric",
+		   "Array Smashing Reduced product of intervals with congruences"),
+       clEnumValN(ARRAYSMASHING_DIS_INTERVALS, "as-dis-int",
+		   "Array Smashing Disjunctive intervals based on Clousot's DisInt domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_DIS_INTERVALS, "as-term-dis-int",
+		   "Array Smashing Disjunctive Intervals with uninterpreted functions."),
+       clEnumValN(ARRAYSMASHING_BOXES, "as-boxes",
+		   "Array Smashing Disjunctive intervals based on ldds"),
+       clEnumValN(ARRAYSMASHING_ZONES_SPLIT_DBM, "as-zones",
+		   "Array Smashing Zones domain with Sparse DBMs in Split Normal Form"),
+       clEnumValN(ARRAYSMASHING_OCT, "as-oct", "Octagons domain"),
+       clEnumValN(ARRAYSMASHING_PK, "as-pk", "Polyhedra domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_ZONES, "as-rtz",
+		   "Array Smashing Reduced product of term-dis-int and zones."),
+       clEnumValN(ARRAYSMASHING_WRAPPED_INTERVALS, "as-w-int",
+		  "Array Smashing Wrapped interval domain")),
+#ifdef HAVE_ALL_DOMAINS
+       cl::init(INTERVALS));
+#else
+       cl::init(ZONES_SPLIT_DBM));
+#endif 
+
+cl::opt<CrabDomain>
+dom2("dom2",
+      cl::desc("Crab numerical abstract domain used to infer invariants"),
+      cl::values 
+      (clEnumValN(INTERVALS, "int",
+		   "Classical interval domain (default)"),
+       clEnumValN(BOOLEAN, "bool",
+       "Boolean abstract domain"),
+       clEnumValN(TERMS_INTERVALS, "term-int",
+		   "Intervals with uninterpreted functions."),       
+       clEnumValN(INTERVALS_CONGRUENCES, "ric",
+		   "Reduced product of intervals with congruences"),
+       clEnumValN(DIS_INTERVALS, "dis-int",
+		   "Disjunctive intervals based on Clousot's DisInt domain"),
+       clEnumValN(TERMS_DIS_INTERVALS, "term-dis-int",
+		   "Disjunctive Intervals with uninterpreted functions."),
+       clEnumValN(BOXES, "boxes",
+		   "Disjunctive intervals based on ldds"),
+       clEnumValN(ZONES_SPLIT_DBM, "zones",
+		   "Zones domain with Sparse DBMs in Split Normal Form"),
+        clEnumValN(ORIGINAL_ZONES_SPLIT_DBM, "orig-zones",
+		   "Original zones domain"),
+       clEnumValN(OCT, "oct", "Octagons domain"),
+       clEnumValN(PK, "pk", "Polyhedra domain"),
+       clEnumValN(TERMS_ZONES, "rtz",
+		   "Reduced product of term-dis-int and zones."),
+       clEnumValN(WRAPPED_INTERVALS, "w-int",
+		  "Wrapped interval domain"),
+       clEnumValN(ARRAYSMASHING_INTERVALS, "as-int",
+		   "Array Smashing Classical interval domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_INTERVALS, "as-term-int",
+		   "Array Smashing Intervals with uninterpreted functions."),       
+       clEnumValN(ARRAYSMASHING_INTERVALS_CONGRUENCES, "as-ric",
+		   "Array Smashing Reduced product of intervals with congruences"),
+       clEnumValN(ARRAYSMASHING_DIS_INTERVALS, "as-dis-int",
+		   "Array Smashing Disjunctive intervals based on Clousot's DisInt domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_DIS_INTERVALS, "as-term-dis-int",
+		   "Array Smashing Disjunctive Intervals with uninterpreted functions."),
+       clEnumValN(ARRAYSMASHING_BOXES, "as-boxes",
+		   "Array Smashing Disjunctive intervals based on ldds"),
+       clEnumValN(ARRAYSMASHING_ZONES_SPLIT_DBM, "as-zones",
+		   "Array Smashing Zones domain with Sparse DBMs in Split Normal Form"),
+       clEnumValN(ARRAYSMASHING_OCT, "as-oct", "Octagons domain"),
+       clEnumValN(ARRAYSMASHING_PK, "as-pk", "Polyhedra domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_ZONES, "as-rtz",
+		   "Array Smashing Reduced product of term-dis-int and zones."),
+       clEnumValN(ARRAYSMASHING_WRAPPED_INTERVALS, "as-w-int",
+		  "Array Smashing Wrapped interval domain")),
+#ifdef HAVE_ALL_DOMAINS
+       cl::init(INTERVALS));
+#else
+       cl::init(ZONES_SPLIT_DBM));
+#endif 
+
+cl::opt<CrabDomain>
+dom3("dom3",
+      cl::desc("Crab numerical abstract domain used to infer invariants"),
+      cl::values 
+      (clEnumValN(INTERVALS, "int",
+		   "Classical interval domain (default)"),
+       clEnumValN(BOOLEAN, "bool",
+       "Boolean abstract domain"),
+       clEnumValN(TERMS_INTERVALS, "term-int",
+		   "Intervals with uninterpreted functions."),       
+       clEnumValN(INTERVALS_CONGRUENCES, "ric",
+		   "Reduced product of intervals with congruences"),
+       clEnumValN(DIS_INTERVALS, "dis-int",
+		   "Disjunctive intervals based on Clousot's DisInt domain"),
+       clEnumValN(TERMS_DIS_INTERVALS, "term-dis-int",
+		   "Disjunctive Intervals with uninterpreted functions."),
+       clEnumValN(BOXES, "boxes",
+		   "Disjunctive intervals based on ldds"),
+       clEnumValN(ZONES_SPLIT_DBM, "zones",
+		   "Zones domain with Sparse DBMs in Split Normal Form"),
+        clEnumValN(ORIGINAL_ZONES_SPLIT_DBM, "orig-zones",
+		   "Original zones domain"),
+       clEnumValN(OCT, "oct", "Octagons domain"),
+       clEnumValN(PK, "pk", "Polyhedra domain"),
+       clEnumValN(TERMS_ZONES, "rtz",
+		   "Reduced product of term-dis-int and zones."),
+       clEnumValN(WRAPPED_INTERVALS, "w-int",
+		  "Wrapped interval domain"),
+       clEnumValN(ARRAYSMASHING_INTERVALS, "as-int",
+		   "Array Smashing Classical interval domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_INTERVALS, "as-term-int",
+		   "Array Smashing Intervals with uninterpreted functions."),       
+       clEnumValN(ARRAYSMASHING_INTERVALS_CONGRUENCES, "as-ric",
+		   "Array Smashing Reduced product of intervals with congruences"),
+       clEnumValN(ARRAYSMASHING_DIS_INTERVALS, "as-dis-int",
+		   "Array Smashing Disjunctive intervals based on Clousot's DisInt domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_DIS_INTERVALS, "as-term-dis-int",
+		   "Array Smashing Disjunctive Intervals with uninterpreted functions."),
+       clEnumValN(ARRAYSMASHING_BOXES, "as-boxes",
+		   "Array Smashing Disjunctive intervals based on ldds"),
+       clEnumValN(ARRAYSMASHING_ZONES_SPLIT_DBM, "as-zones",
+		   "Array Smashing Zones domain with Sparse DBMs in Split Normal Form"),
+       clEnumValN(ARRAYSMASHING_OCT, "as-oct", "Octagons domain"),
+       clEnumValN(ARRAYSMASHING_PK, "as-pk", "Polyhedra domain"),
+       clEnumValN(ARRAYSMASHING_TERMS_ZONES, "as-rtz",
+		   "Array Smashing Reduced product of term-dis-int and zones."),
+       clEnumValN(ARRAYSMASHING_WRAPPED_INTERVALS, "as-w-int",
+		  "Array Smashing Wrapped interval domain")),
+#ifdef HAVE_ALL_DOMAINS
+       cl::init(INTERVALS));
+#else
+       cl::init(ZONES_SPLIT_DBM));
+#endif 
+
+cl::opt<int>
+domains("domains",
+          cl::desc("Number of domains in a configuration"),
+          cl::init(0));
+
+cl::opt<bool>
+back1("back1", 
+           cl::desc("First domain with backward"),
+           cl::init(false));
+
+
+
+cl::opt<bool>
+back2("back2", 
+           cl::desc("Second domain with backward"),
+           cl::init(false));
+
+
+cl::opt<bool>
+back3("back3", 
+           cl::desc("Third domain with backward"),
+           cl::init(false));
+
+
+cl::opt<std::string>
+resultPath("resultPath",
+                cl::desc("temporary result path"),
+                cl::init(""));
+
+
+cl::opt<bool>
+expert("expert", 
+           cl::desc("Expert experiment"),
+           cl::init(false));
+
+
+cl::opt<bool>
+mostPrecise("mostPrecise", 
+           cl::desc("Run the most precise configuration"),
+           cl::init(false));
+           
